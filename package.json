@@ -1,0 +1,19 @@
+{
+  "name": "sequelize-extendedtable",
+  "version": "1.0.0",
+  "description": "Add a functionality to sequelize 4 for extanding tables",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "sequelize",
+    "table",
+    "extended"
+  ],
+  "author": {
+    "name": "Pierre-Yves Piedboeuf",
+    "email": "piedboeuf@gmail.com"
+  },
+  "license": "MIT"
+}
