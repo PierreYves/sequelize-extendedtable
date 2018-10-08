@@ -75,65 +75,75 @@ let SequelizeExtendedTable = {
                 model.addScope('defaultScope', defaultScope, { override: true });
 
                 model.afterFind('afterFind_extendedtable', (results, options) => {
-                   let mergeModels = (result) => {
-                       let extended = 'EXTENDED_' + result[model._extendedOptions.extendedField];
+                    let mergeModels = (result) => {
+                        let extended = 'EXTENDED_' + result[model._extendedOptions.extendedField];
 
-                       if (options.raw) {
-                           Object.keys(result).forEach((property) => {
-                               if (property.substring(0, extended.length) === extended) {
-                                   result[property.substring(extended.length + 1)] = result[property];
-                               }
+                        if (options.raw) {
+                            Object.keys(result).forEach((property) => {
+                                if (property.substring(0, extended.length) === extended) {
+                                    result[property.substring(extended.length + 1)] = result[property];
+                                }
 
-                               if (property.substring(0, 'EXTENDED_'.length) === 'EXTENDED_') {
-                                   delete result[property];
-                               }
-                           });
-                       }
-                       else
-                       {
-                           if (result[extended] !== null) {
-                               this.populateInstance(result, model);
+                                if (property.substring(0, 'EXTENDED_'.length) === 'EXTENDED_') {
+                                    delete result[property];
+                                }
+                            });
+                        }
+                        else
+                        {
+                            if (result[extended] !== null) {
+                                this.populateInstance(result, model);
 
-                               result._extendedObject = result[extended];
+                                result._extendedObject = result[extended];
 
-                               Object.keys(result[extended].dataValues).forEach((property) => {
-                                   result.dataValues[property] = result[extended].getDataValue(property);
-                               });
-                           }
+                                Object.keys(result[extended].dataValues).forEach((property) => {
+                                    result.dataValues[property] = result[extended].getDataValue(property);
+                                });
+                            }
 
-                           Object.keys(result.dataValues).forEach((property) => {
-                               if (property.substring(0, 'EXTENDED_'.length) === 'EXTENDED_') {
-                                   delete result[property];
-                                   delete result.dataValues[property];
-                               }
-                           });
-                       }
+                            Object.keys(result.dataValues).forEach((property) => {
+                                if (property.substring(0, 'EXTENDED_'.length) === 'EXTENDED_') {
+                                    delete result[property];
+                                    delete result.dataValues[property];
+                                }
+                            });
+                        }
 
-                       return result;
-                   };
+                        return result;
+                    };
 
-                   if (Array.isArray(results))
-                   {
-                       results.forEach((result) => {
-                           mergeModels(result);
-                       });
-                   }
-                   else
-                   {
-                       mergeModels(results);
-                   }
+                    if (Array.isArray(results))
+                    {
+                        results.forEach((result) => {
+                            mergeModels(result);
+                        });
+                    }
+                    else
+                    {
+                        mergeModels(results);
+                    }
 
-                   return results;
+                    return results;
                 });
 
-                model.afterCreate('afterCreate_extendedtable', (instance) => {
+                model.options.hooks.extended_afterCreate = (model.options.hooks.afterCreate || []);
+                model.afterCreate('afterCreate_extendedtable', (instance, options) => {
                     if (!instance._extendedObject) {
                         return;
                     }
 
                     instance._extendedObject.set(model._extendedOptions.foreignKey, instance.get(model._extendedOptions.foreignKey));
-                    return instance.save();
+
+                    if (model.options.hooks.extended_afterCreate.length > 0) {
+                        instance._extendedObject.save()
+                            .then(() => {
+                                return model.runHooks(model.options.hooks.extended_afterCreate, instance, options);
+                            });
+                    } else {
+                        return instance._extendedObject.save();
+                    }
                 });
+                model.options.hooks.afterCreate = [model.options.hooks.afterCreate.pop()];
 
                 model.beforeUpdate('beforeUpdate_extendedtable', (instance) => {
                     if (!instance._extendedObject) {
@@ -152,6 +162,14 @@ let SequelizeExtendedTable = {
 
                     return instance._extendedObject.destroy();
                 });
+
+                model.beforeValidate('beforeValidate_extendedtable', (instance, options) => {
+                    if (!instance._extendedObject) {
+                        return;
+                    }
+
+                    return instance._extendedObject.validate(options);
+                });
             };
         });
     },
@@ -162,7 +180,7 @@ let SequelizeExtendedTable = {
             return;
         }
 
-        instance._extendedObject = new _extendedObject;
+        instance._extendedObject = _extendedObject.build();
         instance._extendedAttributes = [];
 
         instance._extendedObject.attributes.forEach((property) => {
