@@ -66,7 +66,7 @@ let SequelizeExtendedTable = {
                         model: _extended_model,
                         as: 'EXTENDED_' + type,
                         where: {
-                            ['$Product.' + model._extendedOptions.extendedField + '$']: type
+                            ['$' + model.name + '.' + model._extendedOptions.extendedField + '$']: type
                         },
                         required: false
                     });
