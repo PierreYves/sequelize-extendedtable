@@ -91,7 +91,7 @@ let SequelizeExtendedTable = {
                         }
                         else
                         {
-                            if (result[extended] !== null) {
+                            if (typeof result[extended] !== 'undefined') {
                                 this.populateInstance(result, model);
 
                                 result._extendedObject = result[extended];

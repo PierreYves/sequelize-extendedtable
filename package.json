@@ -1,6 +1,6 @@
 {
   "name": "sequelize-extendedtable",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Add a functionality to sequelize 4 for extanding tables",
   "main": "index.js",
   "scripts": {
