@@ -65,9 +65,6 @@ let SequelizeExtendedTable = {
                     defaultScope.include.push({
                         model: _extended_model,
                         as: 'EXTENDED_' + type,
-                        where: {
-                            ['$' + model.name + '.' + model._extendedOptions.extendedField + '$']: type
-                        },
                         required: false
                     });
                 });
