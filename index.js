@@ -6,6 +6,35 @@ let SequelizeExtendedTable = {
         this.sequelize = sequelize;
 
         this.sequelize.afterDefine('afterDefine_extendedtable', (model) => {
+
+            model.afterFind('afterFind_ET', (results, options) => {
+                if (Array.isArray(results)) {
+                    results.forEach((row) => {
+                        Object.keys(row.dataValues).forEach((property) => {
+                            if (typeof row.dataValues[property] === 'undefined' || row.dataValues[property] === null) {
+                                return;
+                            }
+
+                            if (row.dataValues[property] instanceof sequelize.Model) {
+                                row.dataValues[property].constructor.runHooks('afterFind', row.dataValues[property], options);
+                            }
+                        });
+                    });
+                }
+                else
+                {
+                    Object.keys(results.dataValues).forEach((property) => {
+                        if (typeof results.dataValues[property] === 'undefined' || results.dataValues[property] === null) {
+                            return;
+                        }
+
+                        if (results.dataValues[property] instanceof sequelize.Model) {
+                            results.dataValues[property].constructor.runHooks('afterFind', results.dataValues[property], options);
+                        }
+                    });
+                }
+            });
+
             model.extended = (options) => {
                 let parent = this;
 
